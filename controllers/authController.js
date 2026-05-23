@@ -44,7 +44,7 @@ export const register = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
 
-        return res.status(200).json({ success: true, message: "Register successful" });
+        return res.status(200).json({ success: true, message: "Register successful", token });
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -80,7 +80,7 @@ export const login = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000
         });
 
-        return res.status(200).json({ success: true, message: "Login successful" });
+        return res.status(200).json({ success: true, message: "Login successful", token });
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -192,7 +192,11 @@ export const verifyEmail = async (req, res) => {
 // Check if user is Authenticated
 export const isAuthenticated = async (req, res) => {
     try {
-        const { token } = req.cookies;
+        let token = req.cookies?.token;
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
         if (!token) {
             return res.json({ success: false, message: "Not authenticated" });
         }
