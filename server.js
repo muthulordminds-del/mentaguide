@@ -17,7 +17,7 @@ connectDB();
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://your-production-website.com',
+    'https://mentaguide.vercel.app',
     ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(origin => origin.trim()) : [])
 ];
 

@@ -28,8 +28,8 @@ export const register = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            secure: true,
+            sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000
         })
         // Sending email Welcome
@@ -73,8 +73,8 @@ export const login = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            secure: true,
+            sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000
         })
 
@@ -90,9 +90,9 @@ export const logout = async (req, res) => {
     try {
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-        });
+            secure: true,
+            sameSite: "None"
+        })
         return res.status(200).json({ success: true, message: "Logout successful" });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -194,7 +194,7 @@ export const isAuthenticated = async (req, res) => {
         if (!token) {
             return res.json({ success: false, message: "Not authenticated" });
         }
-        
+
         jwt.verify(token, process.env.JWT_SECRET);
         return res.json({ success: true, message: "User is authenticated" });
     } catch (error) {
@@ -206,14 +206,14 @@ export const isAuthenticated = async (req, res) => {
 export const sendResetOtp = async (req, res) => {
     const { email } = req.body;
 
-    if(!email){
+    if (!email) {
         return res.status(400).json({ success: false, message: "Email is required" });
     }
 
     try {
 
         const user = await userModel.findOne({ email });
-        if(!user){
+        if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
         }
 
@@ -233,10 +233,10 @@ export const sendResetOtp = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         return res.status(200).json({ success: true, message: "Reset OTP sent successfully" });
-        
+
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
-        
+
     }
 }
 
@@ -244,21 +244,21 @@ export const sendResetOtp = async (req, res) => {
 export const verifyResetOtp = async (req, res) => {
     const { email, otp } = req.body;
 
-    if(!email || !otp){
+    if (!email || !otp) {
         return res.status(400).json({ success: false, message: "Email and OTP are required" });
     }
 
     try {
-        const user = await userModel.findOne({email});
-        if(!user){
+        const user = await userModel.findOne({ email });
+        if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
         }
 
-        if(user.resetOtp === '' || user.resetOtp !== otp){
+        if (user.resetOtp === '' || user.resetOtp !== otp) {
             return res.status(400).json({ success: false, message: "Invalid OTP" });
         }
 
-        if(user.resetOtpExpiryAt < Date.now()){
+        if (user.resetOtpExpiryAt < Date.now()) {
             return res.status(400).json({ success: false, message: "OTP expired" });
         }
 
@@ -272,21 +272,21 @@ export const verifyResetOtp = async (req, res) => {
 export const resetPassword = async (req, res) => {
     const { email, otp, newPassword } = req.body;
 
-    if(!email || !otp || !newPassword){
+    if (!email || !otp || !newPassword) {
         return res.status(400).json({ success: false, message: "Email, OTP and Password are required" });
     }
 
     try {
-        const user = await userModel.findOne({email});
-        if(!user){
+        const user = await userModel.findOne({ email });
+        if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
         }
 
-        if(user.resetOtp === '' || user.resetOtp !== otp){
+        if (user.resetOtp === '' || user.resetOtp !== otp) {
             return res.status(400).json({ success: false, message: "Invalid OTP" });
         }
 
-        if(user.resetOtpExpiryAt < Date.now()){
+        if (user.resetOtpExpiryAt < Date.now()) {
             return res.status(400).json({ success: false, message: "OTP expired" });
         }
 
@@ -297,11 +297,11 @@ export const resetPassword = async (req, res) => {
         await user.save();
 
         return res.status(200).json({ success: true, message: "Password reset successfully" });
-        
-        
+
+
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
-        
+
     }
 }
 
