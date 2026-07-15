@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-const SPREADSHEET_ID = '1xV5ucUy1E03KBtooLn9p3Ouvpf2qCL5IUsc3qC9G0Ow';
+const SPREADSHEET_ID = '1PjV-Gr6ltdnNFrukUzDf8QwG3G1wTrUtWmKxs1OzW-c';
 const SHEET_NAME = 'Mentaguide Event Registration'; // change this if your tab name is different
 
 // Auth using service account credentials
