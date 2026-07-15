@@ -16,7 +16,7 @@ import { isAuthenticated } from "./controllers/authController.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-connectDB();
+await connectDB();
 
 const allowedOrigins = [
     'http://localhost:5173',
