@@ -14,6 +14,23 @@ const getAuth = () => {
   });
 };
 
+const getFormattedTimestamp = () => {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')}:${get('second')}`;
+};
+
 // Appends a row of advertiser registration data to the Google Sheet
 
 export const appendToSheet = async (advertiserData) => {
@@ -24,7 +41,7 @@ export const appendToSheet = async (advertiserData) => {
     const sheets = google.sheets({ version: 'v4', auth });
 
     const row = [
-      new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      getFormattedTimestamp(),
       advertiserData.fullName || '',
       advertiserData.jobTitle || '',
       advertiserData.email || '',
