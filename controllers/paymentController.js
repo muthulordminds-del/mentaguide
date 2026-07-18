@@ -158,7 +158,7 @@ export const verifyPayment = async (req, res) => {
             await transporter.sendMail({
                 from: process.env.SMTP_USER,
                 to: advertiser.email,
-                subject: "Payment Confirmed - Mentaguide Expand 360²",
+                subject: "Thank you for your Register Application - Mentaguide Expand 360²",
                 html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
                     <div style="background-color: #000000; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -166,6 +166,7 @@ export const verifyPayment = async (req, res) => {
                     </div>
                     <div style="padding: 30px; background-color: #ffffff; border-radius: 0 0 8px 8px;">
                         <p style="font-size: 16px; color: #333;">Dear <strong>${advertiser.fullName}</strong>,</p>
+                        <p style="font-size: 16px; color: #333;">Thank you for applying to be an register with Mentaguide. We have successfully received your application for <strong>${advertiser.companyName || 'your company'}</strong>.</p>
                         <p style="font-size: 16px; color: #333;">Thank you! Your registration payment has been received.</p>
                         <div style="background-color: #f4f9ec; border: 1px solid #a4d64f; border-radius: 8px; padding: 20px; margin: 20px 0;">
                             ${balanceLine}
@@ -174,6 +175,7 @@ export const verifyPayment = async (req, res) => {
                         <div style="background-color: #f4f9ec; border: 1px solid #a4d64f; border-radius: 8px; padding: 20px; margin: 20px 0;">
                             <p style="font-size: 16px; color: #202523; font-weight: bold; margin: 0 0 10px 0;">Event Details</p>
                             <p style="font-size: 15px; color: #333; margin: 4px 0;">📅 11TH AUGUST 2026 &nbsp;|&nbsp; 🕚 11:11 AM &nbsp;|&nbsp; 📍 MERLIS HOTEL, COIMBATORE</p>
+                            <p style="font-size:14px;color:#b00;margin:10px 0 0 0;">⏰ On-site registration starts at <strong>10:30 AM</strong> and closes by <strong>11:00 AM</strong>. Please be at the venue within this window so your check-in is completed before the event begins.</p>
                             <p style="margin: 15px 0 0 0;">
                                 <a href="https://mentaguide.com/event" style="display: inline-block; background-color: #a4d64f; color: #202523; text-decoration: none; font-weight: bold; padding: 10px 20px; border-radius: 25px; text-transform: uppercase; letter-spacing: 0.5px;">View Event Page</a>
                             </p>
