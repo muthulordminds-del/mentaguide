@@ -218,3 +218,61 @@ export const PASSWORD_RESET_TEMPLATE = `
 </html>
 `
 
+// ---------------------------------------------------------------
+// Sent immediately after /event-registration form submit (before
+// any payment attempt). Registration is saved to MongoDB + Google
+// Sheet with status "pending" at this point. This email lets the
+// advertiser click through and pay whenever they're ready via
+// {{paymentLink}}. Once they actually pay (success or failure),
+// PAYMENT_FAILED_TEMPLATE / the payment-success mail in
+// paymentController.js is sent, and the same Google Sheet row gets
+// updated (not duplicated).
+// ---------------------------------------------------------------
+export const REGISTRATION_PENDING_TEMPLATE = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+    <div style="background-color: #000000; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h2 style="color: #a4d64f; margin: 0; font-size: 24px;">Registration Received!</h2>
+    </div>
+    <div style="padding: 30px; background-color: #ffffff; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #333;">Dear <strong>{{fullName}}</strong>,</p>
+        <p style="font-size: 16px; color: #333;">Thank you for registering for <strong>Mentaguide Expand 360²</strong>. We've received your details successfully.</p>
+        <div style="background-color: #fff8e6; border: 1px solid #eaa73b; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="font-size: 15px; color: #b06a00; margin: 0; font-weight: bold;">⏳ Your registration is currently PENDING.</p>
+            <p style="font-size: 14px; color: #555; margin: 8px 0 0 0;">To confirm your seat, please complete your payment using the button below.</p>
+        </div>
+        <div style="background-color: #f4f9ec; border: 1px solid #a4d64f; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0 0 12px 0; font-size: 15px; color: #202523;">Click below to choose your payment plan (Full or Partial) and pay securely.</p>
+            <a href="{{paymentLink}}" style="display: inline-block; background-color: #a4d64f; color: #202523; text-decoration: none; font-weight: bold; padding: 12px 28px; border-radius: 25px; text-transform: uppercase; letter-spacing: 0.5px;">Complete Payment</a>
+        </div>
+        <p style="font-size: 13px; color: #888;">If the button doesn't work, copy and paste this link into your browser:<br/>{{paymentLink}}</p>
+        <p style="font-size: 16px; color: #333; margin-top: 30px;">Best Regards,<br/><span style="color: #a4d64f; font-weight: bold;">The Mentaguide Team</span></p>
+    </div>
+</div>
+`
+
+// ---------------------------------------------------------------
+// Sent whenever a payment attempt fails — either reported directly
+// by Razorpay checkout (recordPaymentFailure) or a signature
+// mismatch during verification (verifyPayment). Includes the same
+// payment link so the advertiser can simply retry.
+// ---------------------------------------------------------------
+export const PAYMENT_FAILED_TEMPLATE = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+    <div style="background-color: #000000; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h2 style="color: #ff6b6b; margin: 0; font-size: 24px;">Payment Unsuccessful</h2>
+    </div>
+    <div style="padding: 30px; background-color: #ffffff; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #333;">Dear <strong>{{fullName}}</strong>,</p>
+        <p style="font-size: 16px; color: #333;">We noticed your recent payment attempt for <strong>Mentaguide Expand 360²</strong> did not go through.</p>
+        <div style="background-color: #fdeeee; border: 1px solid #ff6b6b; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="font-size: 14px; color: #b00; margin: 0;"><strong>Reason:</strong> {{reason}}</p>
+        </div>
+        <p style="font-size: 15px; color: #333;">No worries — your registration is still saved. You can try again anytime using the button below.</p>
+        <div style="background-color: #f4f9ec; border: 1px solid #a4d64f; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+            <a href="{{paymentLink}}" style="display: inline-block; background-color: #a4d64f; color: #202523; text-decoration: none; font-weight: bold; padding: 12px 28px; border-radius: 25px; text-transform: uppercase; letter-spacing: 0.5px;">Retry Payment</a>
+        </div>
+        <p style="font-size: 13px; color: #888;">If the button doesn't work, copy and paste this link into your browser:<br/>{{paymentLink}}</p>
+        <p style="font-size: 16px; color: #333; margin-top: 30px;">Best Regards,<br/><span style="color: #a4d64f; font-weight: bold;">The Mentaguide Team</span></p>
+    </div>
+</div>
+`

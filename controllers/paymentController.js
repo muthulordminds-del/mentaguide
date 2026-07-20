@@ -3,10 +3,30 @@ import razorpayInstance from "../config/razorpay.js";
 import advertiserModel from "../models/advertiserModel.js";
 import transporter from "../config/nodemailer.js";
 import { updateSheetRow } from "../config/googleSheets.js";
+import { PAYMENT_FAILED_TEMPLATE } from "../config/emailTemplates.js";
 
 const TOTAL_FEE = 2;
 const PARTIAL_FEE = 1;
 const BALANCE_FEE = TOTAL_FEE - PARTIAL_FEE; // 1
+
+// Small helper so the "payment failed" email is sent the same way
+// from every failure path (gateway failure + signature mismatch).
+const sendPaymentFailedEmail = async (advertiser, reason) => {
+    try {
+        const paymentLink = `${process.env.CLIENT_URL}/complete-payment/${advertiser._id}`;
+        await transporter.sendMail({
+            from: process.env.SENDER_EMAIL || process.env.SMTP_USER,
+            to: advertiser.email,
+            subject: "Payment Unsuccessful - Mentaguide Expand 360²",
+            html: PAYMENT_FAILED_TEMPLATE
+                .replace(/{{fullName}}/g, advertiser.fullName || "")
+                .replace(/{{reason}}/g, reason || "Payment could not be completed")
+                .replace(/{{paymentLink}}/g, paymentLink),
+        });
+    } catch (mailError) {
+        console.error("Error sending payment failure email:", mailError);
+    }
+};
 
 // ---------------------------------------------------------------
 // STEP 1: Create Razorpay order (called right after the advertiser
@@ -62,7 +82,9 @@ export const createOrder = async (req, res) => {
 // ---------------------------------------------------------------
 // STEP 1b: Record a payment failure reported directly by Razorpay
 // checkout (card declined, insufficient funds, user closed etc.)
-// This only updates the DB record — no email is sent for failures.
+// Updates the DB record, updates the Google Sheet row, AND now
+// sends a "payment failed" email to the advertiser with a retry
+// link — so success / failure / pending all result in a mail.
 // ---------------------------------------------------------------
 export const recordPaymentFailure = async (req, res) => {
     try {
@@ -90,6 +112,9 @@ export const recordPaymentFailure = async (req, res) => {
         } catch (sheetError) {
             console.error("Error updating Google Sheet after payment failure:", sheetError);
         }
+
+        // Send payment-failed email with a retry link
+        await sendPaymentFailedEmail(advertiser, advertiser.paymentFailureReason);
 
         return res.json({ success: true, message: "Payment failure recorded." });
     } catch (error) {
@@ -132,6 +157,10 @@ export const verifyPayment = async (req, res) => {
                     } catch (sheetError) {
                         console.error("Error updating Google Sheet after signature mismatch:", sheetError);
                     }
+
+                    // Send payment-failed email here too, so a signature
+                    // mismatch also results in the advertiser being notified
+                    await sendPaymentFailedEmail(failedAdvertiser, failedAdvertiser.paymentFailureReason);
                 }
             } catch (saveErr) {
                 console.error("Error saving failed payment record:", saveErr);
