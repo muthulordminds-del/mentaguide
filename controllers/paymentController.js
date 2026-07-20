@@ -2,7 +2,7 @@ import crypto from "crypto";
 import razorpayInstance from "../config/razorpay.js";
 import advertiserModel from "../models/advertiserModel.js";
 import transporter from "../config/nodemailer.js";
-import { appendToSheet } from "../config/googleSheets.js";
+import { updateSheetRow } from "../config/googleSheets.js";
 
 const TOTAL_FEE = 2;
 const PARTIAL_FEE = 1;
@@ -84,6 +84,13 @@ export const recordPaymentFailure = async (req, res) => {
         }
         await advertiser.save();
 
+        // Update the existing sheet row to reflect the failed status
+        try {
+            await updateSheetRow(advertiser.toObject());
+        } catch (sheetError) {
+            console.error("Error updating Google Sheet after payment failure:", sheetError);
+        }
+
         return res.json({ success: true, message: "Payment failure recorded." });
     } catch (error) {
         console.error("Error recording payment failure:", error);
@@ -119,6 +126,12 @@ export const verifyPayment = async (req, res) => {
                     failedAdvertiser.paymentFailureReason = 'Signature mismatch during verification';
                     failedAdvertiser.razorpayPaymentId = razorpay_payment_id || '';
                     await failedAdvertiser.save();
+
+                    try {
+                        await updateSheetRow(failedAdvertiser.toObject());
+                    } catch (sheetError) {
+                        console.error("Error updating Google Sheet after signature mismatch:", sheetError);
+                    }
                 }
             } catch (saveErr) {
                 console.error("Error saving failed payment record:", saveErr);
@@ -141,11 +154,12 @@ export const verifyPayment = async (req, res) => {
         advertiser.paymentStatus = isFull ? 'paid' : 'partial_paid';
         await advertiser.save();
 
-        // Save to Google Sheet (payment info appended)
+        // Update the existing Google Sheet row (created at registration
+        // time) with the final paid / partial_paid status
         try {
-            await appendToSheet(advertiser.toObject());
+            await updateSheetRow(advertiser.toObject());
         } catch (sheetError) {
-            console.error("Error appending payment to Google Sheet:", sheetError);
+            console.error("Error updating Google Sheet after payment success:", sheetError);
         }
 
         // Send confirmation email
@@ -272,6 +286,13 @@ export const verifyBalancePayment = async (req, res) => {
         advertiser.paymentStatus = 'paid';
         advertiser.balancePaidAt = new Date();
         await advertiser.save();
+
+        // Keep the sheet row in sync once the balance is cleared too
+        try {
+            await updateSheetRow(advertiser.toObject());
+        } catch (sheetError) {
+            console.error("Error updating Google Sheet after balance payment:", sheetError);
+        }
 
         return res.json({ success: true, message: "Balance payment verified successfully" });
     } catch (error) {

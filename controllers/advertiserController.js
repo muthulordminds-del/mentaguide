@@ -1,13 +1,14 @@
 import advertiserModel from "../models/advertiserModel.js";
+import { appendToSheet } from "../config/googleSheets.js";
 
 // ---------------------------------------------------------------
 // STEP 0: Save the event-registration form.
-// No email is sent here and the Google Sheet is NOT written here.
-// Both happen exactly once, after payment is verified successfully
-// (see paymentController.js -> verifyPayment), so the registrant
-// only ever gets ONE email — with event + payment details combined —
-// and the sheet only contains rows for advertisers who actually
-// completed payment.
+// Saved to MongoDB AND to the Google Sheet immediately (status:
+// "pending"), before payment is even attempted. No email is sent
+// here — email is still sent only once, after payment succeeds
+// (see paymentController.js -> verifyPayment). The sheet row
+// created here is later UPDATED (not duplicated) as the payment
+// status changes to paid / partial_paid / failed.
 // ---------------------------------------------------------------
 export const createAdvertiser = async (req, res) => {
     try {
@@ -15,6 +16,17 @@ export const createAdvertiser = async (req, res) => {
 
         const newAdvertiser = new advertiserModel(advertiserData);
         await newAdvertiser.save();
+
+        // Create the initial "pending" row in the Google Sheet.
+        // Non-blocking for the user response: if this fails, the
+        // registration itself still succeeds and the sheet gets
+        // caught up automatically on the next payment status update
+        // (see updateSheetRow's fallback-to-append behaviour).
+        try {
+            await appendToSheet(newAdvertiser.toObject());
+        } catch (sheetError) {
+            console.error("Error appending initial registration to Google Sheet:", sheetError);
+        }
 
         return res.json({
             success: true,
