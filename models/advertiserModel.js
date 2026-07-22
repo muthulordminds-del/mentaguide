@@ -18,9 +18,9 @@ const advertiserSchema = new mongoose.Schema({
 
     // ---- Payment fields ----
     paymentType: { type: String, enum: ['full', 'partial'], default: null },
-    totalAmount: { type: Number, default: 2 },
+    totalAmount: { type: Number, default: 3500 },
     amountPaid: { type: Number, default: 0 },
-    balanceAmount: { type: Number, default: 2 },
+    balanceAmount: { type: Number, default: 3500 },
     paymentStatus: { type: String, enum: ['pending', 'partial_paid', 'paid', 'failed'], default: 'pending' },
     paymentFailureReason: { type: String, default: '' },
 

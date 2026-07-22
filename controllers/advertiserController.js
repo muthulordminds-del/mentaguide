@@ -2,6 +2,7 @@ import advertiserModel from "../models/advertiserModel.js";
 import { appendToSheet } from "../config/googleSheets.js";
 import transporter from "../config/nodemailer.js";
 import { REGISTRATION_PENDING_TEMPLATE } from "../config/emailTemplates.js";
+import { sendWhatsappMessage } from "../config/whatsapp.js";
 
 // ---------------------------------------------------------------
 // STEP 0: Save the event-registration form.
@@ -48,6 +49,20 @@ export const createAdvertiser = async (req, res) => {
             });
         } catch (mailError) {
             console.error("Error sending registration confirmation email:", mailError);
+        }
+
+        // Send registration-received WhatsApp message with the same
+        // payment link. Non-blocking: if this fails, the registration
+        // and email above are unaffected — only the WhatsApp send is
+        // skipped, and it's logged for follow-up.
+        try {
+            const paymentLink = `${process.env.CLIENT_URL}/complete-payment/${newAdvertiser._id}`;
+            await sendWhatsappMessage(
+                newAdvertiser.whatsapp,
+                `Hi ${newAdvertiser.fullName}, thanks for registering for Mentaguide Expand 360²! Complete your payment here: ${paymentLink}`
+            );
+        } catch (waError) {
+            console.error("Error sending registration WhatsApp message:", waError);
         }
 
         return res.json({

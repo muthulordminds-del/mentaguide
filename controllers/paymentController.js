@@ -4,9 +4,10 @@ import advertiserModel from "../models/advertiserModel.js";
 import transporter from "../config/nodemailer.js";
 import { updateSheetRow } from "../config/googleSheets.js";
 import { PAYMENT_FAILED_TEMPLATE } from "../config/emailTemplates.js";
+import { sendWhatsappMessage } from "../config/whatsapp.js";
 
-const TOTAL_FEE = 2;
-const PARTIAL_FEE = 1;
+const TOTAL_FEE = 3500;
+const PARTIAL_FEE = 1000;
 const BALANCE_FEE = TOTAL_FEE - PARTIAL_FEE; // 1
 
 // Small helper so the "payment failed" email is sent the same way
@@ -237,6 +238,19 @@ export const verifyPayment = async (req, res) => {
             });
         } catch (mailError) {
             console.error("Error sending payment confirmation email:", mailError);
+        }
+
+        // Send WhatsApp payment confirmation. Non-blocking: if this
+        // fails, the payment itself is still successfully recorded —
+        // only the WhatsApp notification is skipped, and it's logged.
+        try {
+            const waMessage = isFull
+                ? `Hi ${advertiser.fullName}, your full payment of ₹${TOTAL_FEE} for Mentaguide Expand 360² is confirmed! Event: 11 Aug 2026, 11:11 AM, Merlis Hotel, Coimbatore. Payment ID: ${razorpay_payment_id}`
+                : `Hi ${advertiser.fullName}, your advance payment of ₹${PARTIAL_FEE} for Mentaguide Expand 360² is confirmed! Balance ₹${BALANCE_FEE} is payable at the venue on event day. Event: 11 Aug 2026, 11:11 AM, Merlis Hotel, Coimbatore. Payment ID: ${razorpay_payment_id}`;
+
+            await sendWhatsappMessage(advertiser.whatsapp, waMessage);
+        } catch (waError) {
+            console.error("Error sending payment confirmation WhatsApp message:", waError);
         }
 
         return res.json({
